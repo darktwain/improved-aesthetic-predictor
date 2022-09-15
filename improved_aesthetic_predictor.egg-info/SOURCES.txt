@@ -1,0 +1,7 @@
+LICENSE
+README.md
+setup.py
+improved_aesthetic_predictor.egg-info/PKG-INFO
+improved_aesthetic_predictor.egg-info/SOURCES.txt
+improved_aesthetic_predictor.egg-info/dependency_links.txt
+improved_aesthetic_predictor.egg-info/top_level.txt

@@ -1,21 +1,10 @@
-
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"    # choose GPU if you are on a multi GPU server
+import PIL
 import torch
 import pytorch_lightning as pl
 import torch.nn as nn
-
-
 import clip
-
-
 from PIL import Image, ImageFile
-
-#####  This script will predict the aesthetic score for this image file:
-
-img_path = "images/test.jpg"
-
-
-
 
 
 # if you changed the MLP architecture during training, change it also here:
@@ -27,17 +16,17 @@ class MLP(pl.LightningModule):
         self.ycol = ycol
         self.layers = nn.Sequential(
             nn.Linear(self.input_size, 1024),
-            #nn.ReLU(),
+            # nn.ReLU(),
             nn.Dropout(0.2),
             nn.Linear(1024, 128),
-            #nn.ReLU(),
+            # nn.ReLU(),
             nn.Dropout(0.2),
             nn.Linear(128, 64),
-            #nn.ReLU(),
+            # nn.ReLU(),
             nn.Dropout(0.1),
 
             nn.Linear(64, 16),
-            #nn.ReLU(),
+            # nn.ReLU(),
 
             nn.Linear(16, 1)
         )
@@ -46,11 +35,11 @@ class MLP(pl.LightningModule):
         return self.layers(x)
 
     def training_step(self, batch, batch_idx):
-            x = batch[self.xcol]
-            y = batch[self.ycol].reshape(-1, 1)
-            x_hat = self.layers(x)
-            loss = F.mse_loss(x_hat, y)
-            return loss
+        x = batch[self.xcol]
+        y = batch[self.ycol].reshape(-1, 1)
+        x_hat = self.layers(x)
+        loss = F.mse_loss(x_hat, y)
+        return loss
 
     def validation_step(self, batch, batch_idx):
         x = batch[self.xcol]
@@ -62,6 +51,7 @@ class MLP(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
+
 
 def normalized(a, axis=-1, order=2):
     import numpy as np  # pylint: disable=import-outside-toplevel
@@ -85,25 +75,31 @@ model.eval()
 
 model2, preprocess = clip.load("ViT-L/14", device=device)  # RN50x64
 
-pil_image = Image.open(img_path)
 
-image = preprocess(pil_image).unsqueeze(0).to(device)
+def get_aesthetic_score(img_path):
+    try:
+        pil_image = Image.open(img_path)
+    except PIL.UnidentifiedImageError:
+        return None
+
+    image = preprocess(pil_image).unsqueeze(0).to(device)
+
+    with torch.no_grad():
+        image_features = model2.encode_image(image)
+
+    im_emb_arr = normalized(image_features.cpu().detach().numpy())
+
+    prediction = None
+
+    if device == 'cpu':
+        prediction = model(torch.from_numpy(im_emb_arr).to(device).type(torch.FloatTensor))
+    else:
+        prediction = model(torch.from_numpy(im_emb_arr).to(device).type(torch.cuda.FloatTensor))
+
+    return prediction.item()
 
 
-
-with torch.no_grad():
-    image_features = model2.encode_image(image)
-
-im_emb_arr = normalized(image_features.cpu().detach().numpy())
-
-prediction = None
-
-if device == 'cpu':
-    prediction = model(torch.from_numpy(im_emb_arr).to(device).type(torch.FloatTensor))
-else:
-    prediction = model(torch.from_numpy(im_emb_arr).to(device).type(torch.cuda.FloatTensor))
-
-print("Aesthetic score predicted by the model:")
-print(prediction)
-print(prediction.item())
-print(type(prediction))
+if __name__ == "__main__":
+    file_name = '../images/test.png'
+    score = get_aesthetic_score(file_name)
+    print(score)

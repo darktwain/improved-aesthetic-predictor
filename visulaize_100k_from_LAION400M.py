@@ -105,7 +105,7 @@ c=0
 urls= []
 predictions=[]
 
-# this will run inference over 10 webdataset tar files from LAION 400M and sort them into 20 categories
+# this will run simple_inference over 10 webdataset tar files from LAION 400M and sort them into 20 categories
 # you can DL LAION 400M and convert it to wds tar files with img2dataset ( https://github.com/rom1504/img2dataset ) 
 
 
