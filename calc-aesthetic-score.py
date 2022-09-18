@@ -39,8 +39,11 @@ def main():
 
         if image_file in scores:
             continue
+        try:
+            score = si.get_aesthetic_score(image_path)
+        except OSError:
+            continue
 
-        score = si.get_aesthetic_score(image_path)
         if score is None:
             continue
 
