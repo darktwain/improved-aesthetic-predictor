@@ -1,4 +1,6 @@
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"    # choose GPU if you are on a multi GPU server
+import os
+
 import PIL
 import torch
 import pytorch_lightning as pl
@@ -63,9 +65,11 @@ def normalized(a, axis=-1, order=2):
 
 model = MLP(768)  # CLIP embedding dim is 768 for CLIP ViT L 14
 device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cpu"
 print('device = {}'.format(device))
 
-s = torch.load("sac+logos+ava1-l14-linearMSE.pth", map_location=torch.device(
+dir = os.path.dirname(os.path.realpath(__file__))
+s = torch.load(os.path.join(dir, '..', "sac+logos+ava1-l14-linearMSE.pth"), map_location=torch.device(
     device))  # load the model you trained previously or the model available in this repo
 
 model.load_state_dict(s)
