@@ -65,7 +65,7 @@ def normalized(a, axis=-1, order=2):
 
 model = MLP(768)  # CLIP embedding dim is 768 for CLIP ViT L 14
 device = "cuda" if torch.cuda.is_available() else "cpu"
-device = "cpu"
+#device = "cpu"
 print('device = {}'.format(device))
 
 dir = os.path.dirname(os.path.realpath(__file__))
